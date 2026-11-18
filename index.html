@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101827" />
+  <title>Chat with Rohith</title>
+  <style>
+    :root {
+      --bg:#0b1220; --panel:#111c2e; --panel2:#17243a;
+      --line:#26364e; --text:#eef4ff; --muted:#9aabc3;
+      --accent:#527cff; --green:#27c58b;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh;
+      background:radial-gradient(circle at 20% 0%,#1b2b4b 0,transparent 35%),var(--bg);
+      color:var(--text); font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      display:grid; place-items:center; padding:22px;
+    }
+    button,input,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .app {
+      width:min(100%,960px); height:min(780px,calc(100vh - 44px)); min-height:570px;
+      display:grid; grid-template-rows:auto 1fr; background:rgba(17,28,46,.96);
+      border:1px solid var(--line); border-radius:22px; overflow:hidden;
+      box-shadow:0 24px 80px #0008;
+    }
+    header {
+      display:flex; align-items:center; justify-content:space-between; padding:17px 22px;
+      border-bottom:1px solid var(--line); background:#111c2e;
+    }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .avatar {
+      width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+      background:linear-gradient(135deg,#527cff,#27c58b);font-weight:800;color:white;
+    }
+    h1 { font-size:17px; margin:0; }
+    .sub { color:var(--muted);font-size:12px; }
+    .status { color:#8ee7c6;font-size:12px;display:flex;align-items:center;gap:7px; }
+    .dot { width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block; }
+    .header-actions { display:flex;gap:8px; }
+    .ghost,.primary,.danger {
+      border:1px solid var(--line);border-radius:10px;padding:9px 13px;color:var(--text);background:var(--panel2);
+    }
+    .primary { background:var(--accent);border-color:var(--accent);font-weight:650; }
+    .danger { color:#ffb4b4;border-color:#633b4b; }
+    main { min-height:0; display:grid; grid-template-columns:260px 1fr; }
+    aside { border-right:1px solid var(--line);padding:18px;overflow:auto; }
+    aside h2 { font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 12px; }
+    .conversation {
+      width:100%;text-align:left;padding:12px;border:1px solid transparent;border-radius:12px;
+      background:transparent;color:var(--text);margin-bottom:7px;
+    }
+    .conversation.active,.conversation:hover { background:var(--panel2);border-color:var(--line); }
+    .conversation small { display:block;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .chat { min-width:0;display:grid;grid-template-rows:auto 1fr auto; }
+    .chat-top { padding:14px 20px;border-bottom:1px solid var(--line); }
+    .chat-top strong { display:block; }
+    #messages { overflow:auto;padding:22px;display:flex;flex-direction:column;gap:12px; }
+    .bubble {
+      max-width:min(78%,560px);padding:11px 14px;border-radius:16px;background:#1c2b43;
+      border:1px solid #2a3b55;align-self:flex-start;overflow-wrap:anywhere;
+    }
+    .bubble.mine { align-self:flex-end;background:#304b9b;border-color:#4665c1; }
+    .bubble .meta { display:block;font-size:10px;color:#c0cde2;margin-top:5px;opacity:.8; }
+    .empty { margin:auto;text-align:center;color:var(--muted);max-width:340px; }
+    .composer { padding:15px 18px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:end; }
+    textarea,input {
+      width:100%;border:1px solid var(--line);background:#0c1627;color:var(--text);
+      border-radius:12px;padding:12px;outline:none;
+    }
+    textarea:focus,input:focus { border-color:var(--accent); }
+    textarea { resize:none;min-height:48px;max-height:130px; }
+    .composer button { height:48px;min-width:82px; }
+    .welcome { padding:24px;display:grid;gap:12px;align-content:center;max-width:440px;margin:auto;width:100%; }
+    .welcome h2 { margin:0;font-size:25px; }
+    .welcome p { margin:0;color:var(--muted); }
+    .hidden { display:none !important; }
+    .modal-wrap {
+      position:fixed;inset:0;background:#0009;display:grid;place-items:center;padding:20px;z-index:5;
+    }
+    .modal {
+      width:min(100%,390px);padding:24px;background:var(--panel);
+      border:1px solid var(--line);border-radius:18px;display:grid;gap:12px;
+    }
+    .modal h2 { margin:0; }
+    #notice {
+      position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+      background:#26364e;color:white;padding:10px 16px;border-radius:10px;
+      box-shadow:0 8px 30px #0008;z-index:10;max-width:90%;
+    }
+    .footer-note { color:var(--muted);font-size:11px;text-align:center;padding:0 15px 12px; }
+    @media(max-width:650px) {
+      body { padding:0; }
+      .app { height:100dvh;min-height:0;border:0;border-radius:0; }
+      main { grid-template-columns:1fr; }
+      aside { display:none; }
+      header { padding:13px 15px; }
+      .bubble { max-width:88%; }
+      #messages { padding:16px; }
+      .sub { max-width:170px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="avatar" id="avatar">R</div>
+      <div>
+        <h1 id="siteTitle">Chat with Rohith</h1>
+        <div class="status"><span class="dot"></span><span id="headerStatus">Usually replies when available</span></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="ghost" id="adminButton">Admin</button>
+      <button class="ghost hidden" id="logoutButton">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <aside id="sidebar" class="hidden">
+      <h2>Inbox</h2>
+      <div id="conversationList"></div>
+    </aside>
+
+    <section class="chat">
+      <div class="chat-top">
+        <strong id="chatHeading">A little hello goes a long way 👋</strong>
+        <span class="sub" id="chatSub">Send me a message below.</span>
+      </div>
+
+      <div id="welcome" class="welcome">
+        <h2>Hey! Welcome to my website. Send me a message!</h2>
+        <p>Start a private conversation with Rohith. Enter your name and send your first message.</p>
+        <label class="sub" for="visitorName">Your name</label>
+        <input id="visitorName" maxlength="60" placeholder="What should I call you?" autocomplete="name" />
+        <button class="primary" id="startButton">Start chatting</button>
+        <div class="footer-note">Please don't share passwords or sensitive personal information.</div>
+      </div>
+
+      <div id="messages" class="hidden"><div class="empty">Your conversation will appear here.</div></div>
+
+      <form id="composer" class="composer hidden">
+        <textarea id="messageInput" maxlength="2000" placeholder="Write a message..." required></textarea>
+        <button class="primary" type="submit" id="sendButton">Send</button>
+      </form>
+    </section>
+  </main>
+</div>
+
+<div id="adminModal" class="modal-wrap hidden">
+  <form class="modal" id="adminForm">
+    <h2>Admin sign in</h2>
+    <p class="sub">Only you should use this sign-in.</p>
+    <input id="adminEmail" type="email" placeholder="Your admin email" required autocomplete="username" />
+    <input id="adminPassword" type="password" placeholder="Password" required autocomplete="current-password" />
+    <button class="primary" type="submit">Sign in</button>
+    <button class="ghost" type="button" id="closeModal">Cancel</button>
+  </form>
+</div>
+<div id="notice" class="hidden" role="status"></div>
+
+<script type="module">
+  const firebaseConfig = {
+  apiKey: "AIzaSyCbEYwbtUofUhDc2quYfbQFM6fx-1_dgAg",
+  authDomain: "spark-b9740.firebaseapp.com",
+  projectId: "spark-b9740",
+  storageBucket: "spark-b9740.firebasestorage.app",
+  messagingSenderId: "876650370743",
+  appId: "1:876650370743:web:b4368dc5b9dbfe5ff01f32",
+  measurementId: "G-FSK6C7XH7G"
+};
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signInAnonymously,
+    signInWithEmailAndPassword, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, setDoc, updateDoc, collection, addDoc,
+    query, orderBy, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const $ = id => document.getElementById(id);
+  let currentUser = null, isAdmin = false, activeConversationId = null;
+  let stopMessages = null, stopInbox = null;
+
+  function notify(message) {
+    $("notice").textContent = message;
+    $("notice").classList.remove("hidden");
+    setTimeout(() => $("notice").classList.add("hidden"), 3500);
+  }
+  function friendlyError(error) {
+    console.error(error);
+    const messages = {
+      "auth/invalid-credential": "Email or password is incorrect.",
+      "auth/invalid-email": "Please check the email address.",
+      "auth/too-many-requests": "Too many attempts. Please try again later.",
+      "permission-denied": "Database permission denied. Check your Firestore rules."
+    };
+    notify(messages[error.code] || error.message || "Something went wrong.");
+  }
+  function formatTime(timestamp) {
+    if (!timestamp?.toDate) return "Just now";
+    return timestamp.toDate().toLocaleString([], {hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"});
+  }
+  function showChat() {
+    $("welcome").classList.add("hidden");
+    $("messages").classList.remove("hidden");
+    $("composer").classList.remove("hidden");
+  }
+  function renderMessage(message) {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + ((isAdmin && message.sender === "admin") || (!isAdmin && message.sender === "visitor") ? "mine" : "");
+    const body = document.createElement("div");
+    body.textContent = message.text || "";
+    const meta = document.createElement("span");
+    meta.className = "meta";
+    meta.textContent = (message.sender === "admin" ? "Rohith" : (isAdmin ? "Visitor" : "You")) + " · " + formatTime(message.createdAt);
+    bubble.append(body, meta);
+    $("messages").appendChild(bubble);
+  }
+  function watchMessages(conversationId) {
+    if (stopMessages) stopMessages();
+    activeConversationId = conversationId;
+    $("messages").innerHTML = "";
+    const q = query(collection(db, "conversations", conversationId, "messages"), orderBy("createdAt"));
+    stopMessages = onSnapshot(q, snapshot => {
+      $("messages").innerHTML = "";
+      if (snapshot.empty) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No messages yet. Say hello to start the conversation!";
+        $("messages").appendChild(empty);
+      } else snapshot.forEach(item => renderMessage(item.data()));
+      $("messages").scrollTop = $("messages").scrollHeight;
+    }, friendlyError);
+    showChat();
+  }
+  async function ensureVisitorConversation(name) {
+    const ref = doc(db, "conversations", currentUser.uid);
+    await setDoc(ref, {
+      visitorName: name,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      lastMessage: "Conversation started"
+    }, {merge:true});
+    $("chatHeading").textContent = "Chat with Rohith";
+    $("chatSub").textContent = "This conversation is private to you and the site owner.";
+    watchMessages(currentUser.uid);
+  }
+  async function sendMessage(text) {
+    if (!activeConversationId || !text.trim()) return;
+    const sender = isAdmin ? "admin" : "visitor";
+    const trimmed = text.trim();
+    $("sendButton").disabled = true;
+    try {
+      await addDoc(collection(db, "conversations", activeConversationId, "messages"), {
+        text: trimmed, sender, createdAt: serverTimestamp()
+      });
+      await updateDoc(doc(db, "conversations", activeConversationId), {
+        lastMessage: trimmed.slice(0,120), updatedAt: serverTimestamp()
+      });
+      $("messageInput").value = "";
+    } catch (error) { friendlyError(error); }
+    finally { $("sendButton").disabled = false; }
+  }
+
+  $("startButton").addEventListener("click", async () => {
+    const name = $("visitorName").value.trim();
+    if (!name) return notify("Please enter your name first.");
+    if (!currentUser) return notify("Connecting… please try again in a moment.");
+    try {
+      sessionStorage.setItem("visitorName", name);
+      await ensureVisitorConversation(name);
+    } catch (error) { friendlyError(error); }
+  });
+  $("composer").addEventListener("submit", event => {
+    event.preventDefault();
+    sendMessage($("messageInput").value);
+  });
+  $("adminButton").addEventListener("click", () => $("adminModal").classList.remove("hidden"));
+  $("closeModal").addEventListener("click", () => $("adminModal").classList.add("hidden"));
+  $("adminForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, $("adminEmail").value.trim(), $("adminPassword").value);
+      $("adminModal").classList.add("hidden");
+    } catch (error) { friendlyError(error); }
+  });
+  $("logoutButton").addEventListener("click", async () => {
+    await signOut(auth);
+    location.reload();
+  });
+
+  function watchInbox() {
+    if (stopInbox) stopInbox();
+    stopInbox = onSnapshot(collection(db, "conversations"), snapshot => {
+      const conversations = snapshot.docs.map(d => ({id:d.id,...d.data()}))
+        .sort((a,b) => (b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0));
+      $("conversationList").innerHTML = "";
+      conversations.forEach(c => {
+        const button = document.createElement("button");
+        button.className = "conversation" + (activeConversationId === c.id ? " active" : "");
+        const name = document.createElement("strong"); name.textContent = c.visitorName || "Visitor";
+        const preview = document.createElement("small"); preview.textContent = c.lastMessage || "No messages yet";
+        button.append(name,preview);
+        button.addEventListener("click", () => {
+          $("chatHeading").textContent = c.visitorName || "Visitor";
+          $("chatSub").textContent = "Replying to this visitor";
+          watchMessages(c.id);
+          document.querySelectorAll(".conversation").forEach(el => el.classList.remove("active"));
+          button.classList.add("active");
+        });
+        $("conversationList").appendChild(button);
+      });
+    }, friendlyError);
+  }
+
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    if (!user) {
+      try { await signInAnonymously(auth); } catch (error) { friendlyError(error); }
+      return;
+    }
+    isAdmin = !!user.email;
+    if (isAdmin) {
+      $("sidebar").classList.remove("hidden");
+      $("adminButton").classList.add("hidden");
+      $("logoutButton").classList.remove("hidden");
+      $("welcome").classList.add("hidden");
+      $("messages").classList.remove("hidden");
+      $("messages").innerHTML = '<div class="empty">Choose a conversation from your inbox to reply.</div>';
+      $("composer").classList.add("hidden");
+      $("chatHeading").textContent = "Your inbox";
+      $("chatSub").textContent = "Select a visitor to open the conversation.";
+      watchInbox();
+    } else {
+      $("adminButton").classList.remove("hidden");
+      $("logoutButton").classList.add("hidden");
+      const savedName = sessionStorage.getItem("visitorName");
+      if (savedName) {
+        $("visitorName").value = savedName;
+        try { await ensureVisitorConversation(savedName); } catch (error) { friendlyError(error); }
+      }
+    }
+  });
+</script>
+</body>
+</html>
